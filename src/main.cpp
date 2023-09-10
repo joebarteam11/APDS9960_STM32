@@ -1,50 +1,42 @@
 #include "mbed.h"
 #include "glibr.h"
-// #include "SDFileSystem.h"
-// #include "wave_player.h"
 
-glibr GSensor(D4,D5);
-// SDFileSystem sd(p5, p6, p7, p8, "sd"); //SD card
-// AnalogOut DACout(p18);
-// wave_player waver(&DACout);
-int isr_flag = 0;
-DigitalOut myled(LED1);
-//InterruptIn interrupt(p11);
-//Serial pc(USBTX, USBRX);
-bool ret;
-int val;
+
+glibr GSensor(D4,D5); //I2C pins, SDA, SCL
+
 
 int main()
 {
-    myled = 0;
-    ret = 0;
-    val = 0;
     if ( GSensor.ginit() ) {
         printf("APDS-9960 initialization complete\n\r");
     } else {
         printf("Something went wrong during APDS-9960 init\n\r");
     }
 
-    // Start running the APDS-9960 gesture sensor engine
+    // Start running the APDS-9960 proximity sensor engine
     if ( GSensor.enableProximitySensor(false) ) {
-        printf("Gesture sensor is now running\n\r");
+        printf("Proximity sensor is now running\n\r");
     } else {
-        printf("Something went wrong during gesture sensor init!\n\r");
+        printf("Something went wrong during proximity sensor init!\n\r");
     }
 
     uint8_t proximity_data = 0;
     if ( !GSensor.setProximityGain(PGAIN_2X) ) { // muss nach enableProximitySensor aufgerufen werden
         printf("Something went wrong trying to set PGAIN\n");
     }
-    // FILE *Up;
-    // FILE *Down;
-    // FILE *Left;
-    // FILE *Right;
-    // FILE *Far;
-    // FILE *Near;
 
     //   waver.play(wave_file);
     while(1) {
+                // Read the proximity value
+        if ( !GSensor.readProximity(proximity_data) ) {
+            printf("Error reading proximity value");
+        } else {
+            printf("Proximity: %i\n", proximity_data);
+        }
+        
+        // Wait 250 ms before next reading
+        wait_us(250000);
+
         /* ret = GSensor.isGestureAvailable();
          pc.printf("Is Gesture Available?: %d\n", ret);
          myled = ret;
@@ -106,18 +98,7 @@ int main()
         //     }
         // }
 
-          // Read the proximity value
-        if ( !GSensor.readProximity(proximity_data) ) {
-            printf("Error reading proximity value");
-        } else {
-            printf("Proximity: %i\n", proximity_data);
-        }
-        
-        // Wait 250 ms before next reading
-        wait_us(250000);
-
-
-           //wait_us(500000);
+        //wait_us(500000);
 
     }
 
